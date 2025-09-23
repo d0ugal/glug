@@ -42,7 +42,24 @@ func detectPager() string {
 
 // executeWithPager runs the pager with the given content
 func executeWithPager(content string, pagerName string) error {
-	cmd := exec.Command(pagerName)
+	var cmd *exec.Cmd
+	
+	// Configure pager with appropriate flags for color support
+	switch pagerName {
+	case "less":
+		// -R: enable raw control characters (colors)
+		// -X: don't clear screen on exit
+		// -F: quit if one screen
+		cmd = exec.Command("less", "-R", "-X", "-F")
+	case "more":
+		// more doesn't need special flags for colors
+		cmd = exec.Command("more")
+	case "cat":
+		// cat just outputs everything
+		cmd = exec.Command("cat")
+	default:
+		cmd = exec.Command(pagerName)
+	}
 	
 	// Set up stdin for the pager
 	cmd.Stdin = strings.NewReader(content)
