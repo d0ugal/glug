@@ -73,3 +73,35 @@ func splitColorRule(rule string) []string {
 	}
 	return strings.SplitN(rule, ":", 2)
 }
+
+func TestDetectPager(t *testing.T) {
+	// Test that detectPager returns a valid pager
+	pager := detectPager()
+	if pager == "" {
+		t.Error("detectPager() should return a non-empty string")
+	}
+	
+	// Should be one of the expected pagers
+	expectedPagers := []string{"less", "more", "cat"}
+	validPager := false
+	for _, expected := range expectedPagers {
+		if pager == expected {
+			validPager = true
+			break
+		}
+	}
+	
+	if !validPager {
+		t.Errorf("detectPager() returned unexpected pager: %s", pager)
+	}
+}
+
+func TestExecuteWithPager(t *testing.T) {
+	// Test with cat (should always be available)
+	content := "test line 1\ntest line 2\ntest line 3"
+	
+	err := executeWithPager(content, "cat")
+	if err != nil {
+		t.Errorf("executeWithPager() with cat failed: %v", err)
+	}
+}

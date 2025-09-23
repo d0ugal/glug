@@ -73,6 +73,27 @@ docker logs container | ./glug --level error
 tail -f service.log | ./glug --level info --colour green:PASS --colour red:FAIL
 ```
 
+### Pager Support
+
+Use a pager for better viewing of large log files:
+
+```bash
+# Use pager for large log files
+cat large-logs.json | ./glug --pager
+
+# Combine with filtering and colors
+cat logs.json | ./glug --pager --level error --colour red:ERROR
+
+# Short form
+cat logs.json | ./glug -p
+```
+
+**Pager behavior:**
+- Auto-detects available pagers: `less` (preferred), `more`, or `cat` (fallback)
+- Preserves colors and formatting in the pager
+- Works with all other glug features (filtering, custom colors, etc.)
+- Use `q` to quit the pager, arrow keys to navigate
+
 **Supported levels** (from lowest to highest):
 - `trace` (aliases: `trc`)
 - `debug` (aliases: `dbg`)

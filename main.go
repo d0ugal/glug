@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -24,6 +25,39 @@ func (c *colorFlags) Set(value string) error {
 	return nil
 }
 
+// detectPager finds the best available pager
+func detectPager() string {
+	// Check for common pagers in order of preference
+	pagers := []string{"less", "more", "cat"}
+	
+	for _, pager := range pagers {
+		if _, err := exec.LookPath(pager); err == nil {
+			return pager
+		}
+	}
+	
+	// Fallback to cat if no pager is found
+	return "cat"
+}
+
+// executeWithPager runs the pager with the given content
+func executeWithPager(content string, pagerName string) error {
+	cmd := exec.Command(pagerName)
+	
+	// Set up stdin for the pager
+	cmd.Stdin = strings.NewReader(content)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	// Start the pager
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start pager %s: %v", pagerName, err)
+	}
+	
+	// Wait for the pager to complete
+	return cmd.Wait()
+}
+
 func main() {
 	var colorRules colorFlags
 	flag.Var(&colorRules, "colour", "Color specific words (format: color:word, e.g., green:PASS)")
@@ -31,6 +65,10 @@ func main() {
 
 	var minLevel string
 	flag.StringVar(&minLevel, "level", "", "Minimum log level to show (trace, debug, info, warn/warning, error)")
+
+	var usePager bool
+	flag.BoolVar(&usePager, "pager", false, "Use pager for output (auto-detects less/more)")
+	flag.BoolVar(&usePager, "p", false, "Use pager for output (auto-detects less/more)")
 
 	var help bool
 	flag.BoolVar(&help, "help", false, "Show help message")
@@ -47,8 +85,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  echo '{\"message\":\"Test PASS\"}' | glug --colour green:PASS\n")
 		fmt.Fprintf(os.Stderr, "  cat logs.json | glug --colour green:PASS --colour red:FAIL\n")
 		fmt.Fprintf(os.Stderr, "  docker logs container | glug --level warning --color red:ERROR\n")
+		fmt.Fprintf(os.Stderr, "  cat large-logs.json | glug --pager --level error\n")
 		fmt.Fprintf(os.Stderr, "\nSupported colors: red, green, yellow, blue, magenta, cyan, white\n")
 		fmt.Fprintf(os.Stderr, "Supported levels: trace, debug, info, warn/warning, error\n")
+		fmt.Fprintf(os.Stderr, "Pager support: Auto-detects less, more, or falls back to cat\n")
 		return
 	}
 
@@ -75,6 +115,9 @@ func main() {
 	}()
 
 	scanner := bufio.NewScanner(os.Stdin)
+	
+	// Collect output if using pager
+	var outputLines []string
 
 	for scanner.Scan() {
 		// Check if we should exit due to signal
@@ -92,7 +135,11 @@ func main() {
 		formatted, err := logparser.ParseAndFormatWithColors(line, customColors)
 		if err != nil {
 			// If parsing fails, just print the original line
-			fmt.Println(line)
+			if usePager {
+				outputLines = append(outputLines, line)
+			} else {
+				fmt.Println(line)
+			}
 			continue
 		}
 
@@ -101,7 +148,11 @@ func main() {
 			shouldShow, err := logparser.ShouldShowLogLevel(line, minLevel)
 			if err != nil {
 				// If level parsing fails, show the line (fail open)
-				fmt.Println(formatted)
+				if usePager {
+					outputLines = append(outputLines, formatted)
+				} else {
+					fmt.Println(formatted)
+				}
 				continue
 			}
 			if !shouldShow {
@@ -109,7 +160,11 @@ func main() {
 			}
 		}
 
-		fmt.Println(formatted)
+		if usePager {
+			outputLines = append(outputLines, formatted)
+		} else {
+			fmt.Println(formatted)
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -119,6 +174,17 @@ func main() {
 			return
 		default:
 			fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// If using pager, execute it with collected output
+	if usePager {
+		pagerName := detectPager()
+		content := strings.Join(outputLines, "\n")
+		
+		if err := executeWithPager(content, pagerName); err != nil {
+			fmt.Fprintf(os.Stderr, "Error running pager: %v\n", err)
 			os.Exit(1)
 		}
 	}
