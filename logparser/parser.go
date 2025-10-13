@@ -135,7 +135,6 @@ func ParseAndFormatWithOptions(jsonLine string, customColors map[string]string, 
 	return formatEntryWithOptions(entry, customColors, convertTimestamps, timestampFields), nil
 }
 
-
 // formatEntryWithOptions formats a LogEntry with full configuration options
 func formatEntryWithOptions(entry LogEntry, customColors map[string]string, convertTimestamps bool, timestampFields []string) string {
 	var parts []string
