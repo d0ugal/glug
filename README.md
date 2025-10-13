@@ -15,6 +15,19 @@ A simple Go tool that parses JSON log lines and displays them in a colorized, hu
 
 ## Installation
 
+### Homebrew (Recommended)
+
+```bash
+# Add the tap
+brew tap d0ugal/glug
+
+# Install glug
+brew install glug
+
+# Upgrade to latest version
+brew upgrade glug
+```
+
 ### Build from source
 
 ```bash
