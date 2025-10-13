@@ -42,6 +42,20 @@
       commitMessagePrefix: 'fix:',
       commitMessageAction: 'update',
     },
+    {
+      matchPackageNames: [
+        'golang.org/x/sys',
+      ],
+      allowedVersions: '<=0.30.0',
+      description: 'Limit golang.org/x/sys to versions compatible with Go 1.21',
+    },
+    {
+      matchPackageNames: [
+        'go',
+      ],
+      enabled: false,
+      description: 'Disable Go version updates to maintain compatibility',
+    },
   ],
   customManagers: [
     {
