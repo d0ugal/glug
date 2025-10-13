@@ -1,6 +1,7 @@
 package logparser
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -433,5 +434,222 @@ func TestLevelHierarchy(t *testing.T) {
 	}
 	if !(LevelWarn < LevelError) {
 		t.Error("WARN should be < ERROR")
+	}
+}
+
+func TestIsTimestampField(t *testing.T) {
+	tests := []struct {
+		fieldName string
+		expected  bool
+	}{
+		{"time", true},
+		{"timestamp", true},
+		{"ts", true},
+		{"date", true},
+		{"created", true},
+		{"updated", true},
+		{"modified", true},
+		{"expires", true},
+		{"expiry", true},
+		{"validUntil", true},
+		{"valid_until", true},
+		{"startTime", true},
+		{"start_time", true},
+		{"endTime", true},
+		{"end_time", true},
+		{"lastSeen", true},
+		{"last_seen", true},
+		{"lastLogin", true},
+		{"last_login", true},
+		{"issued", true},
+		{"issuedAt", true},
+		{"issued_at", true},
+		{"notBefore", true},
+		{"not_before", true},
+		{"notAfter", true},
+		{"not_after", true},
+		{"since", true},
+		{"until", true},
+		{"from", true},
+		{"to", true},
+		{"when", true},
+		{"at", false}, // Now more restrictive - "at" alone is not considered a timestamp field
+		{"on", false}, // Now more restrictive - "on" alone is not considered a timestamp field
+		{"message", false},
+		{"level", false},
+		{"user", false},
+		{"id", false},
+		{"name", false},
+		{"status", false},
+		{"count", false},
+		{"value", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.fieldName, func(t *testing.T) {
+			result := isTimestampField(tt.fieldName)
+			if result != tt.expected {
+				t.Errorf("isTimestampField(%q) = %v, want %v", tt.fieldName, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConvertTimestampField(t *testing.T) {
+	tests := []struct {
+		fieldName string
+		value     interface{}
+		expected  string
+	}{
+		// Without custom fields, no conversion should happen
+		{"validUntil", int64(1760134416629), "1760134416629"},
+		{"expires", float64(1609459200), "1.6094592e+09"},
+		{"created", "2023-01-01T12:00:00Z", "2023-01-01T12:00:00Z"},
+		{"timestamp", int64(1749975482337), "1749975482337"},
+		
+		// Non-timestamp fields should not be converted
+		{"message", "test message", "test message"},
+		{"level", "info", "info"},
+		{"user", "john", "john"},
+		{"count", 42, "42"},
+		
+		// Timestamp fields with invalid values
+		{"expires", "invalid-date", "invalid-date"},
+		{"timestamp", nil, "<nil>"},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_%v", tt.fieldName, tt.value), func(t *testing.T) {
+			result := convertTimestampField(tt.fieldName, tt.value)
+			if result != tt.expected {
+				t.Errorf("convertTimestampField(%q, %v) = %q, want %q", tt.fieldName, tt.value, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConvertTimestampFieldWithConfig(t *testing.T) {
+	tests := []struct {
+		fieldName     string
+		value         interface{}
+		customFields  []string
+		expected      string
+	}{
+		// With custom fields specified
+		{"validUntil", int64(1760134416629), []string{"validUntil"}, "2025-10-10 23:13:36 (1760134416629)"},
+		{"expires", float64(1609459200), []string{"expires"}, "2021-01-01 00:00:00 (1.6094592e+09)"},
+		{"created", "2023-01-01T12:00:00Z", []string{"created"}, "2023-01-01 12:00:00 (2023-01-01T12:00:00Z)"},
+		{"timestamp", int64(1749975482337), []string{"timestamp"}, "2025-06-15 09:18:02 (1749975482337)"},
+		
+		// Fields not in custom list should not be converted
+		{"validUntil", int64(1760134416629), []string{"expires"}, "1760134416629"},
+		{"expires", float64(1609459200), []string{"validUntil"}, "1.6094592e+09"},
+		
+		// Case insensitive matching
+		{"ValidUntil", int64(1760134416629), []string{"validuntil"}, "2025-10-10 23:13:36 (1760134416629)"},
+		{"EXPIRES", float64(1609459200), []string{"expires"}, "2021-01-01 00:00:00 (1.6094592e+09)"},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_%v_%v", tt.fieldName, tt.value, tt.customFields), func(t *testing.T) {
+			result := convertTimestampFieldWithConfig(tt.fieldName, tt.value, tt.customFields)
+			if result != tt.expected {
+				t.Errorf("convertTimestampFieldWithConfig(%q, %v, %v) = %q, want %q", tt.fieldName, tt.value, tt.customFields, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestTimestampFieldConversionInLogs(t *testing.T) {
+	tests := []struct {
+		name            string
+		input           string
+		convertTimestamps bool
+		timestampFields []string
+		contains        []string
+		notContains     []string
+	}{
+		{
+			name:  "no timestamp conversion by default",
+			input: `{"level":"info","message":"Token created","validUntil":1760134416629}`,
+			convertTimestamps: false,
+			contains: []string{
+				"Token created",
+				"validUntil=1.760134416629e+12",
+			},
+			notContains: []string{
+				"2025-10-10",
+			},
+		},
+		{
+			name:  "validUntil timestamp conversion with explicit field",
+			input: `{"level":"info","message":"Token created","validUntil":1760134416629}`,
+			convertTimestamps: true,
+			timestampFields: []string{"validUntil"},
+			contains: []string{
+				"Token created",
+				"validUntil=",
+				"2025-10-10 23:13:36",
+				"(1.760134416629e+12)",
+			},
+		},
+		{
+			name:  "expires timestamp conversion",
+			input: `{"level":"warn","message":"Session expires soon","expires":1609459200}`,
+			convertTimestamps: true,
+			timestampFields: []string{"expires"},
+			contains: []string{
+				"Session expires soon",
+				"expires=",
+				"2021-01-01 00:00:00",
+				"(1.6094592e+09)",
+			},
+		},
+		{
+			name:  "multiple timestamp fields",
+			input: `{"level":"info","message":"User action","created":1609459200,"expires":1760134416629}`,
+			convertTimestamps: true,
+			timestampFields: []string{"created", "expires"},
+			contains: []string{
+				"User action",
+				"created=",
+				"expires=",
+				"2021-01-01 00:00:00",
+				"2025-10-10 23:13:36",
+			},
+		},
+		{
+			name:  "non-timestamp fields unchanged",
+			input: `{"level":"info","message":"Test","user":"john","count":42}`,
+			convertTimestamps: true,
+			timestampFields: []string{"validUntil"},
+			contains: []string{
+				"Test",
+				"user=john",
+				"count=42",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := ParseAndFormatWithOptions(tt.input, nil, tt.convertTimestamps, tt.timestampFields)
+			if err != nil {
+				t.Errorf("ParseAndFormatWithOptions() error: %v", err)
+				return
+			}
+
+			for _, substr := range tt.contains {
+				if !strings.Contains(result, substr) {
+					t.Errorf("ParseAndFormatWithOptions() result missing expected substring %q\nGot: %s", substr, result)
+				}
+			}
+
+			for _, substr := range tt.notContains {
+				if strings.Contains(result, substr) {
+					t.Errorf("ParseAndFormatWithOptions() result contains unexpected substring %q\nGot: %s", substr, result)
+				}
+			}
+		})
 	}
 }

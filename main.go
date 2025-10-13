@@ -91,6 +91,10 @@ func main() {
 	flag.BoolVar(&noPager, "no-pager", false, "Disable pager (output directly to stdout)")
 	flag.BoolVar(&noPager, "n", false, "Disable pager (output directly to stdout)")
 
+	var timestampFields string
+	flag.StringVar(&timestampFields, "convert-timestamps", "", "Comma-separated list of field names to convert as timestamps")
+	flag.StringVar(&timestampFields, "t", "", "Comma-separated list of field names to convert as timestamps")
+
 	var help bool
 	flag.BoolVar(&help, "help", false, "Show help message")
 	flag.BoolVar(&help, "h", false, "Show help message")
@@ -108,9 +112,12 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  docker logs container | glug --level warning --color red:ERROR\n")
 		fmt.Fprintf(os.Stderr, "  cat large-logs.json | glug --level error\n")
 		fmt.Fprintf(os.Stderr, "  echo '{\"message\":\"Quick output\"}' | glug --no-pager\n")
+		fmt.Fprintf(os.Stderr, "  cat logs.json | glug --convert-timestamps validUntil,expires\n")
+		fmt.Fprintf(os.Stderr, "  cat logs.json | glug --convert-timestamps created,updated\n")
 		fmt.Fprintf(os.Stderr, "\nSupported colors: red, green, yellow, blue, magenta, cyan, white\n")
 		fmt.Fprintf(os.Stderr, "Supported levels: trace, debug, info, warn/warning, error\n")
 		fmt.Fprintf(os.Stderr, "Pager: Enabled by default, use --no-pager to disable\n")
+		fmt.Fprintf(os.Stderr, "Timestamps: Use --convert-timestamps to specify which fields to convert\n")
 		return
 	}
 
@@ -129,6 +136,18 @@ func main() {
 	// Handle pager logic: default to true, but can be disabled with --no-pager
 	if noPager {
 		usePager = false
+	}
+
+	// Parse timestamp fields - conversion is enabled only if fields are specified
+	var timestampFieldList []string
+	var convertTimestamps bool
+	if timestampFields != "" {
+		convertTimestamps = true
+		timestampFieldList = strings.Split(timestampFields, ",")
+		// Trim whitespace from each field name
+		for i, field := range timestampFieldList {
+			timestampFieldList[i] = strings.TrimSpace(field)
+		}
 	}
 
 	// Set up signal handling for graceful shutdown
@@ -159,7 +178,7 @@ func main() {
 			continue
 		}
 
-		formatted, err := logparser.ParseAndFormatWithColors(line, customColors)
+		formatted, err := logparser.ParseAndFormatWithOptions(line, customColors, convertTimestamps, timestampFieldList)
 		if err != nil {
 			// If parsing fails, just print the original line
 			if usePager {

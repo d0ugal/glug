@@ -100,6 +100,11 @@ func ParseAndFormat(jsonLine string) (string, error) {
 
 // ParseAndFormatWithColors parses a JSON log line and returns a formatted colored string with custom color rules
 func ParseAndFormatWithColors(jsonLine string, customColors map[string]string) (string, error) {
+	return ParseAndFormatWithOptions(jsonLine, customColors, false, nil)
+}
+
+// ParseAndFormatWithOptions parses a JSON log line with full configuration options
+func ParseAndFormatWithOptions(jsonLine string, customColors map[string]string, convertTimestamps bool, timestampFields []string) (string, error) {
 	var rawLog map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonLine), &rawLog); err != nil {
 		return "", fmt.Errorf("failed to parse JSON: %w", err)
@@ -127,7 +132,7 @@ func ParseAndFormatWithColors(jsonLine string, customColors map[string]string) (
 		}
 	}
 
-	return formatEntryWithColors(entry, customColors), nil
+	return formatEntryWithOptions(entry, customColors, convertTimestamps, timestampFields), nil
 }
 
 // formatEntry formats a LogEntry into a colored string
@@ -137,6 +142,11 @@ func formatEntry(entry LogEntry) string {
 
 // formatEntryWithColors formats a LogEntry into a colored string with custom color rules
 func formatEntryWithColors(entry LogEntry, customColors map[string]string) string {
+	return formatEntryWithOptions(entry, customColors, false, nil)
+}
+
+// formatEntryWithOptions formats a LogEntry with full configuration options
+func formatEntryWithOptions(entry LogEntry, customColors map[string]string, convertTimestamps bool, timestampFields []string) string {
 	var parts []string
 
 	// Format timestamp
@@ -168,7 +178,16 @@ func formatEntryWithColors(entry LogEntry, customColors map[string]string) strin
 	for _, key := range keys {
 		value := entry.Other[key]
 		keyStr := color.MagentaString(key)
-		valueStr := applyCustomColors(color.YellowString(fmt.Sprintf("%v", value)), customColors)
+		
+		// Check if this field should be converted to a timestamp
+		var convertedValue string
+		if convertTimestamps {
+			convertedValue = convertTimestampFieldWithConfig(key, value, timestampFields)
+		} else {
+			convertedValue = fmt.Sprintf("%v", value)
+		}
+		
+		valueStr := applyCustomColors(color.YellowString(convertedValue), customColors)
 		otherParts = append(otherParts, fmt.Sprintf("%s=%s", keyStr, valueStr))
 	}
 
@@ -274,4 +293,70 @@ func getColorFunc(colorName string) func(string) string {
 	default:
 		return func(s string) string { return color.WhiteString(s) }
 	}
+}
+
+// isTimestampField checks if a field name suggests it contains a timestamp
+func isTimestampField(fieldName string) bool {
+	fieldName = strings.ToLower(fieldName)
+	
+	// Common timestamp field patterns - be more specific to avoid false positives
+	timestampPatterns := []string{
+		"time", "timestamp", "ts", "date", "created", "updated", "modified",
+		"expires", "expiry", "expire", "validuntil", "valid_until",
+		"starttime", "start_time", "endtime", "end_time", "begintime", "begin_time",
+		"lastseen", "last_seen", "lastlogin", "last_login", "lastaccess", "last_access",
+		"issued", "issuedat", "issued_at", "notbefore", "not_before", "notafter", "not_after",
+		"since", "until", "from", "to", "when",
+	}
+	
+	// Check for exact matches or specific patterns
+	for _, pattern := range timestampPatterns {
+		if fieldName == pattern || strings.HasPrefix(fieldName, pattern+"_") || strings.HasSuffix(fieldName, "_"+pattern) {
+			return true
+		}
+	}
+	
+	// Special cases for common patterns
+	if strings.Contains(fieldName, "time") && !strings.Contains(fieldName, "status") {
+		return true
+	}
+	if strings.Contains(fieldName, "at") && (strings.Contains(fieldName, "time") || strings.Contains(fieldName, "date")) {
+		return true
+	}
+	
+	return false
+}
+
+// convertTimestampField converts a field value to human-readable date if it looks like a timestamp
+func convertTimestampField(fieldName string, value interface{}) string {
+	return convertTimestampFieldWithConfig(fieldName, value, nil)
+}
+
+// convertTimestampFieldWithConfig converts a field value to human-readable date with custom field configuration
+func convertTimestampFieldWithConfig(fieldName string, value interface{}, customFields []string) string {
+	// Check if this field should be converted - only if it's in the custom fields list
+	shouldConvert := false
+	
+	for _, field := range customFields {
+		if strings.EqualFold(fieldName, field) {
+			shouldConvert = true
+			break
+		}
+	}
+	
+	if !shouldConvert {
+		return fmt.Sprintf("%v", value)
+	}
+	
+	// Try to convert the value to a timestamp
+	converted := formatTime(value)
+	originalStr := fmt.Sprintf("%v", value)
+	
+	if converted != "" && converted != originalStr {
+		// If conversion was successful and different from original, return both
+		return fmt.Sprintf("%s (%s)", converted, originalStr)
+	}
+	
+	// If conversion failed or wasn't different, return original
+	return originalStr
 }

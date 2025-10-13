@@ -99,6 +99,27 @@ cat logs.json | ./glug -n
 - Use `q` to quit the pager, arrow keys to navigate
 - Use `--no-pager` or `-n` to disable pager for direct output
 
+### Timestamp Conversion
+
+Convert timestamp fields to human-readable dates:
+
+```bash
+# Convert specific timestamp fields
+cat logs.json | ./glug --convert-timestamps validUntil,expires
+
+# Convert multiple timestamp fields
+cat logs.json | ./glug --convert-timestamps created,updated,expires
+
+# Short form
+cat logs.json | ./glug -t validUntil
+```
+
+**Timestamp conversion behavior:**
+- **Explicit field specification** - only converts fields you explicitly specify
+- **Preserves original values** - shows both human-readable date and original value
+- **Supports various formats** - Unix timestamps (seconds/milliseconds), RFC3339 strings
+- **Works with all features** - compatible with filtering, colors, and pager
+
 **Supported levels** (from lowest to highest):
 - `trace` (aliases: `trc`)
 - `debug` (aliases: `dbg`)
