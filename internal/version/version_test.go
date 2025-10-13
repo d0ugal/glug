@@ -7,7 +7,7 @@ import (
 
 func TestGet(t *testing.T) {
 	info := Get()
-	
+
 	// Test that we get valid info
 	if info.Version == "" {
 		t.Error("Version should not be empty")
@@ -31,10 +31,10 @@ func TestString(t *testing.T) {
 		BuildDate: "2025-01-01T00:00:00Z",
 		GoVersion: "go1.21.0",
 	}
-	
+
 	expected := "glug 1.0.0 (commit: abc123, built: 2025-01-01T00:00:00Z, go: go1.21.0)"
 	result := info.String()
-	
+
 	if result != expected {
 		t.Errorf("String() = %q, want %q", result, expected)
 	}
@@ -47,9 +47,9 @@ func TestStringWithDevVersion(t *testing.T) {
 		BuildDate: "unknown",
 		GoVersion: "go1.21.0",
 	}
-	
+
 	result := info.String()
-	
+
 	// Should contain all the expected parts
 	if !contains(result, "glug") {
 		t.Error("String should contain 'glug'")

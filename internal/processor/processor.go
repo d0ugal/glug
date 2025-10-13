@@ -18,10 +18,10 @@ type LogProcessor struct {
 
 // Config represents the application configuration
 type Config struct {
-	MinLevel            string
-	UsePager            bool
-	ConvertTimestamps   bool
-	TimestampFieldList  []string
+	MinLevel           string
+	UsePager           bool
+	ConvertTimestamps  bool
+	TimestampFieldList []string
 }
 
 // NewLogProcessor creates a new log processor

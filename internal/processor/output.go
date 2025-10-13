@@ -9,8 +9,8 @@ import (
 
 // OutputHandler manages output to either stdout or pager
 type OutputHandler struct {
-	usePager     bool
-	outputLines  []string
+	usePager    bool
+	outputLines []string
 }
 
 // NewOutputHandler creates a new output handler
