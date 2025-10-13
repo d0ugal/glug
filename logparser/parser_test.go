@@ -432,7 +432,7 @@ func TestLevelHierarchy(t *testing.T) {
 	if LevelInfo >= LevelWarn {
 		t.Error("INFO should be < WARN")
 	}
-	if !(LevelWarn < LevelError) {
+	if LevelWarn >= LevelError {
 		t.Error("WARN should be < ERROR")
 	}
 }
