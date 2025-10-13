@@ -102,7 +102,7 @@ func TestFormatTime(t *testing.T) {
 		{
 			name:     "millisecond timestamp",
 			input:    float64(1749975482337),
-			expected: "2025-06-15 09:18:02",
+			expected: "2025-06-15 08:18:02",
 		},
 		{
 			name:     "second timestamp",
@@ -112,7 +112,7 @@ func TestFormatTime(t *testing.T) {
 		{
 			name:     "int64 millisecond timestamp",
 			input:    int64(1749975482337),
-			expected: "2025-06-15 09:18:02",
+			expected: "2025-06-15 08:18:02",
 		},
 		{
 			name:     "RFC3339 string",
@@ -536,17 +536,17 @@ func TestConvertTimestampFieldWithConfig(t *testing.T) {
 		expected     string
 	}{
 		// With custom fields specified
-		{"validUntil", int64(1760134416629), []string{"validUntil"}, "2025-10-10 23:13:36 (1760134416629)"},
+		{"validUntil", int64(1760134416629), []string{"validUntil"}, "2025-10-10 22:13:36 (1760134416629)"},
 		{"expires", float64(1609459200), []string{"expires"}, "2021-01-01 00:00:00 (1.6094592e+09)"},
 		{"created", "2023-01-01T12:00:00Z", []string{"created"}, "2023-01-01 12:00:00 (2023-01-01T12:00:00Z)"},
-		{"timestamp", int64(1749975482337), []string{"timestamp"}, "2025-06-15 09:18:02 (1749975482337)"},
+		{"timestamp", int64(1749975482337), []string{"timestamp"}, "2025-06-15 08:18:02 (1749975482337)"},
 
 		// Fields not in custom list should not be converted
 		{"validUntil", int64(1760134416629), []string{"expires"}, "1760134416629"},
 		{"expires", float64(1609459200), []string{"validUntil"}, "1.6094592e+09"},
 
 		// Case insensitive matching
-		{"ValidUntil", int64(1760134416629), []string{"validuntil"}, "2025-10-10 23:13:36 (1760134416629)"},
+		{"ValidUntil", int64(1760134416629), []string{"validuntil"}, "2025-10-10 22:13:36 (1760134416629)"},
 		{"EXPIRES", float64(1609459200), []string{"expires"}, "2021-01-01 00:00:00 (1.6094592e+09)"},
 	}
 
@@ -589,7 +589,7 @@ func TestTimestampFieldConversionInLogs(t *testing.T) {
 			contains: []string{
 				"Token created",
 				"validUntil=",
-				"2025-10-10 23:13:36",
+				"2025-10-10 22:13:36",
 				"(1.760134416629e+12)",
 			},
 		},
@@ -615,7 +615,7 @@ func TestTimestampFieldConversionInLogs(t *testing.T) {
 				"created=",
 				"expires=",
 				"2021-01-01 00:00:00",
-				"2025-10-10 23:13:36",
+				"2025-10-10 22:13:36",
 			},
 		},
 		{
