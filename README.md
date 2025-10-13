@@ -75,24 +75,29 @@ tail -f service.log | ./glug --level info --colour green:PASS --colour red:FAIL
 
 ### Pager Support
 
-Use a pager for better viewing of large log files:
+Pager is **enabled by default** for better viewing of log files:
 
 ```bash
-# Use pager for large log files
-cat large-logs.json | ./glug --pager
+# Pager enabled by default
+cat large-logs.json | ./glug
 
 # Combine with filtering and colors
-cat logs.json | ./glug --pager --level error --colour red:ERROR
+cat logs.json | ./glug --level error --colour red:ERROR
 
-# Short form
-cat logs.json | ./glug -p
+# Disable pager for quick output
+echo '{"message":"Quick output"}' | ./glug --no-pager
+
+# Short form to disable pager
+cat logs.json | ./glug -n
 ```
 
 **Pager behavior:**
+- **Enabled by default** - automatically uses pager for all output
 - Auto-detects available pagers: `less` (preferred), `more`, or `cat` (fallback)
 - Preserves colors and formatting in the pager
 - Works with all other glug features (filtering, custom colors, etc.)
 - Use `q` to quit the pager, arrow keys to navigate
+- Use `--no-pager` or `-n` to disable pager for direct output
 
 **Supported levels** (from lowest to highest):
 - `trace` (aliases: `trc`)

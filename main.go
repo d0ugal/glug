@@ -29,13 +29,13 @@ func (c *colorFlags) Set(value string) error {
 func detectPager() string {
 	// Check for common pagers in order of preference
 	pagers := []string{"less", "more", "cat"}
-	
+
 	for _, pager := range pagers {
 		if _, err := exec.LookPath(pager); err == nil {
 			return pager
 		}
 	}
-	
+
 	// Fallback to cat if no pager is found
 	return "cat"
 }
@@ -43,7 +43,7 @@ func detectPager() string {
 // executeWithPager runs the pager with the given content
 func executeWithPager(content string, pagerName string) error {
 	var cmd *exec.Cmd
-	
+
 	// Configure pager with appropriate flags for color support
 	switch pagerName {
 	case "less":
@@ -60,17 +60,17 @@ func executeWithPager(content string, pagerName string) error {
 	default:
 		cmd = exec.Command(pagerName)
 	}
-	
+
 	// Set up stdin for the pager
 	cmd.Stdin = strings.NewReader(content)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	// Start the pager
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start pager %s: %v", pagerName, err)
 	}
-	
+
 	// Wait for the pager to complete
 	return cmd.Wait()
 }
@@ -84,8 +84,12 @@ func main() {
 	flag.StringVar(&minLevel, "level", "", "Minimum log level to show (trace, debug, info, warn/warning, error)")
 
 	var usePager bool
-	flag.BoolVar(&usePager, "pager", false, "Use pager for output (auto-detects less/more)")
-	flag.BoolVar(&usePager, "p", false, "Use pager for output (auto-detects less/more)")
+	flag.BoolVar(&usePager, "pager", true, "Use pager for output (auto-detects less/more) [default: true]")
+	flag.BoolVar(&usePager, "p", true, "Use pager for output (auto-detects less/more) [default: true]")
+	
+	var noPager bool
+	flag.BoolVar(&noPager, "no-pager", false, "Disable pager (output directly to stdout)")
+	flag.BoolVar(&noPager, "n", false, "Disable pager (output directly to stdout)")
 
 	var help bool
 	flag.BoolVar(&help, "help", false, "Show help message")
@@ -102,10 +106,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  echo '{\"message\":\"Test PASS\"}' | glug --colour green:PASS\n")
 		fmt.Fprintf(os.Stderr, "  cat logs.json | glug --colour green:PASS --colour red:FAIL\n")
 		fmt.Fprintf(os.Stderr, "  docker logs container | glug --level warning --color red:ERROR\n")
-		fmt.Fprintf(os.Stderr, "  cat large-logs.json | glug --pager --level error\n")
+		fmt.Fprintf(os.Stderr, "  cat large-logs.json | glug --level error\n")
+		fmt.Fprintf(os.Stderr, "  echo '{\"message\":\"Quick output\"}' | glug --no-pager\n")
 		fmt.Fprintf(os.Stderr, "\nSupported colors: red, green, yellow, blue, magenta, cyan, white\n")
 		fmt.Fprintf(os.Stderr, "Supported levels: trace, debug, info, warn/warning, error\n")
-		fmt.Fprintf(os.Stderr, "Pager support: Auto-detects less, more, or falls back to cat\n")
+		fmt.Fprintf(os.Stderr, "Pager: Enabled by default, use --no-pager to disable\n")
 		return
 	}
 
@@ -121,6 +126,11 @@ func main() {
 		customColors[word] = color
 	}
 
+	// Handle pager logic: default to true, but can be disabled with --no-pager
+	if noPager {
+		usePager = false
+	}
+
 	// Set up signal handling for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	sigChan := make(chan os.Signal, 1)
@@ -132,7 +142,7 @@ func main() {
 	}()
 
 	scanner := bufio.NewScanner(os.Stdin)
-	
+
 	// Collect output if using pager
 	var outputLines []string
 
@@ -199,7 +209,7 @@ func main() {
 	if usePager {
 		pagerName := detectPager()
 		content := strings.Join(outputLines, "\n")
-		
+
 		if err := executeWithPager(content, pagerName); err != nil {
 			fmt.Fprintf(os.Stderr, "Error running pager: %v\n", err)
 			os.Exit(1)
