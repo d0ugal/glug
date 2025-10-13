@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/d0ugal/glug/compare/v1.0.1...v1.1.0) (2025-10-13)
+
+
+### Features
+
+* add automated Homebrew tap update workflow ([9477c64](https://github.com/d0ugal/glug/commit/9477c64ab0d9602ba078dab2eb784604e4bed003))
+* add Homebrew tap for glug ([009ea66](https://github.com/d0ugal/glug/commit/009ea660b9299fdd77a3f00cade718c8c9582762))
+
+
+### Bug Fixes
+
+* remove unused cache.go file ([9f20e82](https://github.com/d0ugal/glug/commit/9f20e82c95fad98be7a77b47ce11de0c2afa283e))
+* update golang.org/x/sys to v0.30.0 (compatible with go 1.21) ([5f8d395](https://github.com/d0ugal/glug/commit/5f8d395d01a058a3dd7ab14ceb7bea72c8756bec))
+
 ## [1.0.1](https://github.com/d0ugal/glug/compare/v1.0.0...v1.0.1) (2025-10-13)
 
 
