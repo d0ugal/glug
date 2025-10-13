@@ -1,0 +1,92 @@
+name: Release Please
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - uses: googleapis/release-please-action@v4
+      id: release_please
+      with:
+        release-type: go
+        path: .
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    # Debug info
+    - name: Debug Release Info
+      if: steps.release_please.outputs.release_created == 'true'
+      run: |
+        echo "Release created!"
+        echo "Tag: ${{ steps.release_please.outputs.tag_name }}"
+        echo "Name: ${{ steps.release_please.outputs.name }}"
+        echo "Draft: ${{ steps.release_please.outputs.draft }}"
+        echo "Prerelease: ${{ steps.release_please.outputs.prerelease }}"
+
+    # Build binaries for release
+    - name: Set up Go
+      if: steps.release_please.outputs.release_created == 'true'
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.21'
+
+    - name: Build binaries
+      if: steps.release_please.outputs.release_created == 'true'
+      run: |
+        VERSION=${{ steps.release_please.outputs.tag_name }}
+        COMMIT=$(git rev-parse --short HEAD)
+        BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Build for multiple platforms
+        platforms=(
+          "linux/amd64"
+          "linux/arm64"
+          "darwin/amd64"
+          "darwin/arm64"
+          "windows/amd64"
+        )
+        
+        for platform in "${platforms[@]}"; do
+          IFS='/' read -r goos goarch <<< "$platform"
+          output_name="glug"
+          if [ "$goos" = "windows" ]; then
+            output_name="${output_name}.exe"
+          fi
+          
+          GOOS=$goos GOARCH=$goarch go build \
+            -ldflags="-s -w \
+              -X github.com/dougalmatthews/glug/internal/version.Version=$VERSION \
+              -X github.com/dougalmatthews/glug/internal/version.Commit=$COMMIT \
+              -X github.com/dougalmatthews/glug/internal/version.BuildDate=$BUILD_DATE" \
+            -o "dist/glug-$goos-$goarch$([ "$goos" = "windows" ] && echo ".exe" || echo "")" .
+        done
+
+    - name: Create checksums
+      if: steps.release_please.outputs.release_created == 'true'
+      run: |
+        cd dist
+        sha256sum glug-* > checksums.txt
+
+    - name: Upload release assets
+      if: steps.release_please.outputs.release_created == 'true'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.release_please.outputs.upload_url }}
+        asset_path: ./dist/
+        asset_name: glug-binaries
+        asset_content_type: application/zip
