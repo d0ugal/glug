@@ -506,13 +506,13 @@ func TestConvertTimestampField(t *testing.T) {
 		{"expires", float64(1609459200), "1.6094592e+09"},
 		{"created", "2023-01-01T12:00:00Z", "2023-01-01T12:00:00Z"},
 		{"timestamp", int64(1749975482337), "1749975482337"},
-		
+
 		// Non-timestamp fields should not be converted
 		{"message", "test message", "test message"},
 		{"level", "info", "info"},
 		{"user", "john", "john"},
 		{"count", 42, "42"},
-		
+
 		// Timestamp fields with invalid values
 		{"expires", "invalid-date", "invalid-date"},
 		{"timestamp", nil, "<nil>"},
@@ -530,21 +530,21 @@ func TestConvertTimestampField(t *testing.T) {
 
 func TestConvertTimestampFieldWithConfig(t *testing.T) {
 	tests := []struct {
-		fieldName     string
-		value         interface{}
-		customFields  []string
-		expected      string
+		fieldName    string
+		value        interface{}
+		customFields []string
+		expected     string
 	}{
 		// With custom fields specified
 		{"validUntil", int64(1760134416629), []string{"validUntil"}, "2025-10-10 23:13:36 (1760134416629)"},
 		{"expires", float64(1609459200), []string{"expires"}, "2021-01-01 00:00:00 (1.6094592e+09)"},
 		{"created", "2023-01-01T12:00:00Z", []string{"created"}, "2023-01-01 12:00:00 (2023-01-01T12:00:00Z)"},
 		{"timestamp", int64(1749975482337), []string{"timestamp"}, "2025-06-15 09:18:02 (1749975482337)"},
-		
+
 		// Fields not in custom list should not be converted
 		{"validUntil", int64(1760134416629), []string{"expires"}, "1760134416629"},
 		{"expires", float64(1609459200), []string{"validUntil"}, "1.6094592e+09"},
-		
+
 		// Case insensitive matching
 		{"ValidUntil", int64(1760134416629), []string{"validuntil"}, "2025-10-10 23:13:36 (1760134416629)"},
 		{"EXPIRES", float64(1609459200), []string{"expires"}, "2021-01-01 00:00:00 (1.6094592e+09)"},
@@ -562,16 +562,16 @@ func TestConvertTimestampFieldWithConfig(t *testing.T) {
 
 func TestTimestampFieldConversionInLogs(t *testing.T) {
 	tests := []struct {
-		name            string
-		input           string
+		name              string
+		input             string
 		convertTimestamps bool
-		timestampFields []string
-		contains        []string
-		notContains     []string
+		timestampFields   []string
+		contains          []string
+		notContains       []string
 	}{
 		{
-			name:  "no timestamp conversion by default",
-			input: `{"level":"info","message":"Token created","validUntil":1760134416629}`,
+			name:              "no timestamp conversion by default",
+			input:             `{"level":"info","message":"Token created","validUntil":1760134416629}`,
 			convertTimestamps: false,
 			contains: []string{
 				"Token created",
@@ -582,10 +582,10 @@ func TestTimestampFieldConversionInLogs(t *testing.T) {
 			},
 		},
 		{
-			name:  "validUntil timestamp conversion with explicit field",
-			input: `{"level":"info","message":"Token created","validUntil":1760134416629}`,
+			name:              "validUntil timestamp conversion with explicit field",
+			input:             `{"level":"info","message":"Token created","validUntil":1760134416629}`,
 			convertTimestamps: true,
-			timestampFields: []string{"validUntil"},
+			timestampFields:   []string{"validUntil"},
 			contains: []string{
 				"Token created",
 				"validUntil=",
@@ -594,10 +594,10 @@ func TestTimestampFieldConversionInLogs(t *testing.T) {
 			},
 		},
 		{
-			name:  "expires timestamp conversion",
-			input: `{"level":"warn","message":"Session expires soon","expires":1609459200}`,
+			name:              "expires timestamp conversion",
+			input:             `{"level":"warn","message":"Session expires soon","expires":1609459200}`,
 			convertTimestamps: true,
-			timestampFields: []string{"expires"},
+			timestampFields:   []string{"expires"},
 			contains: []string{
 				"Session expires soon",
 				"expires=",
@@ -606,10 +606,10 @@ func TestTimestampFieldConversionInLogs(t *testing.T) {
 			},
 		},
 		{
-			name:  "multiple timestamp fields",
-			input: `{"level":"info","message":"User action","created":1609459200,"expires":1760134416629}`,
+			name:              "multiple timestamp fields",
+			input:             `{"level":"info","message":"User action","created":1609459200,"expires":1760134416629}`,
 			convertTimestamps: true,
-			timestampFields: []string{"created", "expires"},
+			timestampFields:   []string{"created", "expires"},
 			contains: []string{
 				"User action",
 				"created=",
@@ -619,10 +619,10 @@ func TestTimestampFieldConversionInLogs(t *testing.T) {
 			},
 		},
 		{
-			name:  "non-timestamp fields unchanged",
-			input: `{"level":"info","message":"Test","user":"john","count":42}`,
+			name:              "non-timestamp fields unchanged",
+			input:             `{"level":"info","message":"Test","user":"john","count":42}`,
 			convertTimestamps: true,
-			timestampFields: []string{"validUntil"},
+			timestampFields:   []string{"validUntil"},
 			contains: []string{
 				"Test",
 				"user=john",

@@ -86,7 +86,7 @@ func main() {
 	var usePager bool
 	flag.BoolVar(&usePager, "pager", true, "Use pager for output (auto-detects less/more) [default: true]")
 	flag.BoolVar(&usePager, "p", true, "Use pager for output (auto-detects less/more) [default: true]")
-	
+
 	var noPager bool
 	flag.BoolVar(&noPager, "no-pager", false, "Disable pager (output directly to stdout)")
 	flag.BoolVar(&noPager, "n", false, "Disable pager (output directly to stdout)")

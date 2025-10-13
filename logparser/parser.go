@@ -178,7 +178,7 @@ func formatEntryWithOptions(entry LogEntry, customColors map[string]string, conv
 	for _, key := range keys {
 		value := entry.Other[key]
 		keyStr := color.MagentaString(key)
-		
+
 		// Check if this field should be converted to a timestamp
 		var convertedValue string
 		if convertTimestamps {
@@ -186,7 +186,7 @@ func formatEntryWithOptions(entry LogEntry, customColors map[string]string, conv
 		} else {
 			convertedValue = fmt.Sprintf("%v", value)
 		}
-		
+
 		valueStr := applyCustomColors(color.YellowString(convertedValue), customColors)
 		otherParts = append(otherParts, fmt.Sprintf("%s=%s", keyStr, valueStr))
 	}
@@ -298,7 +298,7 @@ func getColorFunc(colorName string) func(string) string {
 // isTimestampField checks if a field name suggests it contains a timestamp
 func isTimestampField(fieldName string) bool {
 	fieldName = strings.ToLower(fieldName)
-	
+
 	// Common timestamp field patterns - be more specific to avoid false positives
 	timestampPatterns := []string{
 		"time", "timestamp", "ts", "date", "created", "updated", "modified",
@@ -308,14 +308,14 @@ func isTimestampField(fieldName string) bool {
 		"issued", "issuedat", "issued_at", "notbefore", "not_before", "notafter", "not_after",
 		"since", "until", "from", "to", "when",
 	}
-	
+
 	// Check for exact matches or specific patterns
 	for _, pattern := range timestampPatterns {
 		if fieldName == pattern || strings.HasPrefix(fieldName, pattern+"_") || strings.HasSuffix(fieldName, "_"+pattern) {
 			return true
 		}
 	}
-	
+
 	// Special cases for common patterns
 	if strings.Contains(fieldName, "time") && !strings.Contains(fieldName, "status") {
 		return true
@@ -323,7 +323,7 @@ func isTimestampField(fieldName string) bool {
 	if strings.Contains(fieldName, "at") && (strings.Contains(fieldName, "time") || strings.Contains(fieldName, "date")) {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -336,27 +336,27 @@ func convertTimestampField(fieldName string, value interface{}) string {
 func convertTimestampFieldWithConfig(fieldName string, value interface{}, customFields []string) string {
 	// Check if this field should be converted - only if it's in the custom fields list
 	shouldConvert := false
-	
+
 	for _, field := range customFields {
 		if strings.EqualFold(fieldName, field) {
 			shouldConvert = true
 			break
 		}
 	}
-	
+
 	if !shouldConvert {
 		return fmt.Sprintf("%v", value)
 	}
-	
+
 	// Try to convert the value to a timestamp
 	converted := formatTime(value)
 	originalStr := fmt.Sprintf("%v", value)
-	
+
 	if converted != "" && converted != originalStr {
 		// If conversion was successful and different from original, return both
 		return fmt.Sprintf("%s (%s)", converted, originalStr)
 	}
-	
+
 	// If conversion failed or wasn't different, return original
 	return originalStr
 }
