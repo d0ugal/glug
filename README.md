@@ -254,4 +254,4 @@ Error log:
 ```json
 {"level":"error","time":"2023-01-01T12:00:00Z","message":"Connection failed","error":"timeout","retries":3}
 ```
-Output: `2023-01-01 12:00:00 ERROR Connection failed error=timeout retries=3` 
+Output: `2023-01-01 12:00:00 ERROR Connection failed error=timeout retries=3` # Test workflow trigger
