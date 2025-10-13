@@ -18,6 +18,14 @@ A simple Go tool that parses JSON log lines and displays them in a colorized, hu
 ### Build from source
 
 ```bash
+# Clone the repository
+git clone https://github.com/dougalmatthews/glug.git
+cd glug
+
+# Build using Makefile (recommended)
+make build
+
+# Or build manually
 go mod tidy
 go build -o glug .
 ```
@@ -25,10 +33,21 @@ go build -o glug .
 ### Install directly
 
 ```bash
-go install github.com/yourusername/glug@latest
+go install github.com/dougalmatthews/glug@latest
 ```
 
-Note: Replace `yourusername` with the actual GitHub username/organization if publishing to a Git repository.
+### Development
+
+```bash
+# Run tests
+make test
+
+# Format and lint code
+make lint
+
+# Clean build artifacts
+make clean
+```
 
 ## Usage
 
@@ -133,6 +152,12 @@ cat logs.json | ./glug -t validUntil
 - `--level debug` shows: DEBUG, INFO, WARNING, ERROR, etc.
 - Logs without a level field are always shown
 - Invalid JSON lines are always shown
+
+### Version Information
+
+```bash
+./glug --version
+```
 
 ### Help
 

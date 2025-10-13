@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/dougalmatthews/glug/internal/version"
 	"github.com/dougalmatthews/glug/logparser"
 )
 
@@ -99,7 +100,16 @@ func main() {
 	flag.BoolVar(&help, "help", false, "Show help message")
 	flag.BoolVar(&help, "h", false, "Show help message")
 
+	var showVersion bool
+	flag.BoolVar(&showVersion, "version", false, "Show version information")
+	flag.BoolVar(&showVersion, "v", false, "Show version information")
+
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println(version.Get().String())
+		return
+	}
 
 	if help {
 		fmt.Fprintf(os.Stderr, "Glug - JSON Log Parser and Colorizer\n\n")
