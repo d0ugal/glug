@@ -423,13 +423,13 @@ func TestLogLevelString(t *testing.T) {
 
 func TestLevelHierarchy(t *testing.T) {
 	// Test that level hierarchy is correct
-	if !(LevelTrace < LevelDebug) {
+	if LevelTrace >= LevelDebug {
 		t.Error("TRACE should be < DEBUG")
 	}
-	if !(LevelDebug < LevelInfo) {
+	if LevelDebug >= LevelInfo {
 		t.Error("DEBUG should be < INFO")
 	}
-	if !(LevelInfo < LevelWarn) {
+	if LevelInfo >= LevelWarn {
 		t.Error("INFO should be < WARN")
 	}
 	if !(LevelWarn < LevelError) {

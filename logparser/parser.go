@@ -253,7 +253,7 @@ func formatLevel(level string) string {
 
 // applyCustomColors applies custom color rules to a string
 func applyCustomColors(text string, customColors map[string]string) string {
-	if customColors == nil || len(customColors) == 0 {
+	if len(customColors) == 0 {
 		return color.WhiteString(text)
 	}
 
