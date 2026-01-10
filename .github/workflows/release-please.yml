@@ -1,93 +1,93 @@
 name: Release Please
 
 on:
-  push:
-    branches: [ main, master ]
+    push:
+        branches: [main, master]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+    contents: write
+    pull-requests: write
+    issues: write
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
+    release-please:
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: googleapis/release-please-action@v4
-      id: release_please
-      with:
-        release-type: go
-        path: .
-        token: ${{ secrets.GITHUB_TOKEN }}
+            - uses: googleapis/release-please-action@v4
+              id: release_please
+              with:
+                  release-type: go
+                  path: .
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-    # Debug info
-    - name: Debug Release Info
-      if: steps.release_please.outputs.release_created == 'true'
-      run: |
-        echo "Release created!"
-        echo "Tag: ${{ steps.release_please.outputs.tag_name }}"
-        echo "Name: ${{ steps.release_please.outputs.name }}"
-        echo "Draft: ${{ steps.release_please.outputs.draft }}"
-        echo "Prerelease: ${{ steps.release_please.outputs.prerelease }}"
+            # Debug info
+            - name: Debug Release Info
+              if: steps.release_please.outputs.release_created == 'true'
+              run: |
+                  echo "Release created!"
+                  echo "Tag: ${{ steps.release_please.outputs.tag_name }}"
+                  echo "Name: ${{ steps.release_please.outputs.name }}"
+                  echo "Draft: ${{ steps.release_please.outputs.draft }}"
+                  echo "Prerelease: ${{ steps.release_please.outputs.prerelease }}"
 
-    # Build binaries for release
-    - name: Set up Go
-      if: steps.release_please.outputs.release_created == 'true'
-      uses: actions/setup-go@v6
-      with:
-        go-version: '1.25'
+            # Build binaries for release
+            - name: Set up Go
+              if: steps.release_please.outputs.release_created == 'true'
+              uses: actions/setup-go@v6
+              with:
+                  go-version: "1.25"
 
-    - name: Build binaries
-      if: steps.release_please.outputs.release_created == 'true'
-      run: |
-        VERSION=${{ steps.release_please.outputs.tag_name }}
-        COMMIT=$(git rev-parse --short HEAD)
-        BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            - name: Build binaries
+              if: steps.release_please.outputs.release_created == 'true'
+              run: |
+                  VERSION=${{ steps.release_please.outputs.tag_name }}
+                  COMMIT=$(git rev-parse --short HEAD)
+                  BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-        # Build for multiple platforms
-        platforms=(
-          "linux/amd64"
-          "linux/arm64"
-          "darwin/amd64"
-          "darwin/arm64"
-          "windows/amd64"
-        )
+                  # Build for multiple platforms
+                  platforms=(
+                    "linux/amd64"
+                    "linux/arm64"
+                    "darwin/amd64"
+                    "darwin/arm64"
+                    "windows/amd64"
+                  )
 
-        for platform in "${platforms[@]}"; do
-          IFS='/' read -r goos goarch <<< "$platform"
-          output_name="glug"
-          if [ "$goos" = "windows" ]; then
-            output_name="${output_name}.exe"
-          fi
+                  for platform in "${platforms[@]}"; do
+                    IFS='/' read -r goos goarch <<< "$platform"
+                    output_name="glug"
+                    if [ "$goos" = "windows" ]; then
+                      output_name="${output_name}.exe"
+                    fi
 
-          GOOS=$goos GOARCH=$goarch go build \
-            -ldflags="-s -w \
-              -X github.com/dougalmatthews/glug/internal/version.Version=$VERSION \
-              -X github.com/dougalmatthews/glug/internal/version.Commit=$COMMIT \
-              -X github.com/dougalmatthews/glug/internal/version.BuildDate=$BUILD_DATE" \
-            -o "dist/glug-$goos-$goarch$([ "$goos" = "windows" ] && echo ".exe" || echo "")" .
-        done
+                    GOOS=$goos GOARCH=$goarch go build \
+                      -ldflags="-s -w \
+                        -X github.com/dougalmatthews/glug/internal/version.Version=$VERSION \
+                        -X github.com/dougalmatthews/glug/internal/version.Commit=$COMMIT \
+                        -X github.com/dougalmatthews/glug/internal/version.BuildDate=$BUILD_DATE" \
+                      -o "dist/glug-$goos-$goarch$([ "$goos" = "windows" ] && echo ".exe" || echo "")" .
+                  done
 
-    - name: Create checksums
-      if: steps.release_please.outputs.release_created == 'true'
-      run: |
-        cd dist
-        sha256sum glug-* > checksums.txt
+            - name: Create checksums
+              if: steps.release_please.outputs.release_created == 'true'
+              run: |
+                  cd dist
+                  sha256sum glug-* > checksums.txt
 
-    - name: Upload Release Assets
-      if: steps.release_please.outputs.release_created == 'true'
-      uses: softprops/action-gh-release@v2
-      with:
-        files: ./dist/*
-        tag_name: ${{ steps.release_please.outputs.tag_name }}
-        name: ${{ steps.release_please.outputs.tag_name }}
-        body: ${{ steps.release_please.outputs.body }}
-        draft: ${{ steps.release_please.outputs.draft }}
-        prerelease: ${{ steps.release_please.outputs.prerelease }}
-        token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Upload Release Assets
+              if: steps.release_please.outputs.release_created == 'true'
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: ./dist/*
+                  tag_name: ${{ steps.release_please.outputs.tag_name }}
+                  name: ${{ steps.release_please.outputs.tag_name }}
+                  body: ${{ steps.release_please.outputs.body }}
+                  draft: ${{ steps.release_please.outputs.draft }}
+                  prerelease: ${{ steps.release_please.outputs.prerelease }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
