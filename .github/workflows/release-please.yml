@@ -41,7 +41,7 @@ jobs:
               if: steps.release_please.outputs.release_created == 'true'
               uses: actions/setup-go@v6
               with:
-                  go-version: "1.25"
+                  go-version: "1.26"
 
             - name: Build binaries
               if: steps.release_please.outputs.release_created == 'true'
