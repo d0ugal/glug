@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2](https://github.com/d0ugal/glug/compare/v1.1.1...v1.1.2) (2026-03-26)
+
+
+### Bug Fixes
+
+* **ci:** update Go version to 1.25 ([bfd117c](https://github.com/d0ugal/glug/commit/bfd117c8606edbaf93de123139650df387343460))
+* update module github.com/fatih/color to v1.19.0 ([#29](https://github.com/d0ugal/glug/issues/29)) ([37b5916](https://github.com/d0ugal/glug/commit/37b591613b1fc40495eb9d0bbe0cc2f142c0235c))
+
 ## [1.1.1](https://github.com/d0ugal/glug/compare/v1.1.0...v1.1.1) (2025-10-13)
 
 
