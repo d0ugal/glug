@@ -65,6 +65,7 @@ func (lp *LogProcessor) Process(ctx context.Context) error {
 				lp.output.AddLine(formatted)
 				continue
 			}
+
 			if !shouldShow {
 				continue
 			}

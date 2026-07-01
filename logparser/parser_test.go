@@ -72,6 +72,7 @@ func TestParseAndFormat(t *testing.T) {
 				if err == nil {
 					t.Errorf("ParseAndFormat() expected error but got none")
 				}
+
 				return
 			}
 
@@ -427,12 +428,15 @@ func TestLevelHierarchy(t *testing.T) {
 	if LevelTrace >= LevelDebug {
 		t.Error("TRACE should be < DEBUG")
 	}
+
 	if LevelDebug >= LevelInfo {
 		t.Error("DEBUG should be < INFO")
 	}
+
 	if LevelInfo >= LevelWarn {
 		t.Error("INFO should be < WARN")
 	}
+
 	if LevelWarn >= LevelError {
 		t.Error("WARN should be < ERROR")
 	}

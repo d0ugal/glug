@@ -12,12 +12,15 @@ func TestGet(t *testing.T) {
 	if info.Version == "" {
 		t.Error("Version should not be empty")
 	}
+
 	if info.Commit == "" {
 		t.Error("Commit should not be empty")
 	}
+
 	if info.BuildDate == "" {
 		t.Error("BuildDate should not be empty")
 	}
+
 	if info.GoVersion == "" {
 		t.Error("GoVersion should not be empty")
 	}
@@ -54,12 +57,15 @@ func TestStringWithDevVersion(t *testing.T) {
 	if !contains(result, "glug") {
 		t.Error("String should contain 'glug'")
 	}
+
 	if !contains(result, "dev") {
 		t.Error("String should contain 'dev'")
 	}
+
 	if !contains(result, "none") {
 		t.Error("String should contain 'none'")
 	}
+
 	if !contains(result, "unknown") {
 		t.Error("String should contain 'unknown'")
 	}

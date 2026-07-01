@@ -158,11 +158,14 @@ func formatEntryWithOptions(entry LogEntry, customColors map[string]string, conv
 	}
 
 	// Add other fields as key=value pairs
-	var otherParts []string
-	var keys []string
+	var (
+		otherParts []string
+		keys       []string
+	)
 	for key := range entry.Other {
 		keys = append(keys, key)
 	}
+
 	sort.Strings(keys) // Sort for consistent output
 
 	for _, key := range keys {
@@ -200,18 +203,21 @@ func formatTime(timeVal interface{}) string {
 		if t > 1e10 {
 			return time.Unix(0, int64(t)*int64(time.Millisecond)).Format("2006-01-02 15:04:05")
 		}
+
 		return time.Unix(int64(t), 0).Format("2006-01-02 15:04:05")
 	case int64:
 		// Assume milliseconds if > 1e10, otherwise seconds
 		if t > 1e10 {
 			return time.Unix(0, t*int64(time.Millisecond)).Format("2006-01-02 15:04:05")
 		}
+
 		return time.Unix(t, 0).Format("2006-01-02 15:04:05")
 	case string:
 		// Try to parse as RFC3339 or other common formats
 		if parsed, err := time.Parse(time.RFC3339, t); err == nil {
 			return parsed.Format("2006-01-02 15:04:05")
 		}
+
 		if parsed, err := time.Parse("2006-01-02T15:04:05", t); err == nil {
 			return parsed.Format("2006-01-02 15:04:05")
 		}
@@ -310,6 +316,7 @@ func isTimestampField(fieldName string) bool {
 	if strings.Contains(fieldName, "time") && !strings.Contains(fieldName, "status") {
 		return true
 	}
+
 	if strings.Contains(fieldName, "at") && (strings.Contains(fieldName, "time") || strings.Contains(fieldName, "date")) {
 		return true
 	}

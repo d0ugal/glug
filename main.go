@@ -128,17 +128,20 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Supported levels: trace, debug, info, warn/warning, error\n")
 		fmt.Fprintf(os.Stderr, "Pager: Enabled by default, use --no-pager to disable\n")
 		fmt.Fprintf(os.Stderr, "Timestamps: Use --convert-timestamps to specify which fields to convert\n")
+
 		return
 	}
 
 	// Parse color rules
 	customColors := make(map[string]string)
+
 	for _, rule := range colorRules {
 		parts := strings.SplitN(rule, ":", 2)
 		if len(parts) != 2 {
 			fmt.Fprintf(os.Stderr, "Invalid color rule format: %s (expected color:word)\n", rule)
 			os.Exit(1)
 		}
+
 		color, word := parts[0], parts[1]
 		customColors[word] = color
 	}
@@ -149,8 +152,10 @@ func main() {
 	}
 
 	// Parse timestamp fields - conversion is enabled only if fields are specified
-	var timestampFieldList []string
-	var convertTimestamps bool
+	var (
+		timestampFieldList []string
+		convertTimestamps  bool
+	)
 	if timestampFields != "" {
 		convertTimestamps = true
 		timestampFieldList = strings.Split(timestampFields, ",")
@@ -196,6 +201,7 @@ func main() {
 			} else {
 				fmt.Println(line)
 			}
+
 			continue
 		}
 
@@ -209,8 +215,10 @@ func main() {
 				} else {
 					fmt.Println(formatted)
 				}
+
 				continue
 			}
+
 			if !shouldShow {
 				continue
 			}
