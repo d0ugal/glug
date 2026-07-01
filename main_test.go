@@ -21,13 +21,16 @@ func TestSignalHandling(t *testing.T) {
 
 	// This should not panic or hang
 	done := make(chan bool, 1)
+
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				t.Errorf("main() panicked: %v", r)
 			}
+
 			done <- true
 		}()
+
 		main()
 	}()
 
@@ -71,6 +74,7 @@ func splitColorRule(rule string) []string {
 	if rule == "" {
 		return []string{}
 	}
+
 	return strings.SplitN(rule, ":", 2)
 }
 
@@ -84,6 +88,7 @@ func TestDetectPager(t *testing.T) {
 	// Should be one of the expected pagers
 	expectedPagers := []string{"less", "more", "cat"}
 	validPager := false
+
 	for _, expected := range expectedPagers {
 		if pager == expected {
 			validPager = true
