@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6](https://github.com/d0ugal/glug/compare/v1.1.5...v1.1.6) (2026-07-23)
+
+
+### Bug Fixes
+
+* update module github.com/mattn/go-isatty to v0.0.23 ([#55](https://github.com/d0ugal/glug/issues/55)) ([fab5ba5](https://github.com/d0ugal/glug/commit/fab5ba50fe3d33b69a1e725383edb408e2f9648d))
+* update module github.com/mattn/go-isatty to v0.0.24 ([#58](https://github.com/d0ugal/glug/issues/58)) ([12724b2](https://github.com/d0ugal/glug/commit/12724b28baf01d433fe1eae40e82f865ef105660))
+
 ## [1.1.5](https://github.com/d0ugal/glug/compare/v1.1.4...v1.1.5) (2026-05-29)
 
 
