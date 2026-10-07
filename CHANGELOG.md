@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7](https://github.com/d0ugal/glug/compare/v1.1.6...v1.1.7) (2026-10-07)
+
+
+### Bug Fixes
+
+* update module github.com/mattn/go-colorable to v0.1.16 ([#67](https://github.com/d0ugal/glug/issues/67)) ([8653a4f](https://github.com/d0ugal/glug/commit/8653a4f7919bc935a314958c0bfce8c0c8a4d64e))
+
 ## [1.1.6](https://github.com/d0ugal/glug/compare/v1.1.5...v1.1.6) (2026-07-23)
 
 
